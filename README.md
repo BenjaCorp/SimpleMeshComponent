@@ -14,6 +14,9 @@ The `SimpleMeshComponent` provides a simplified alternative to Unreal Engine's `
 
 ## Getting Started
 
+![SimpleMeshDemo GIF](https://github.com/BenjaCorp/SimpleMeshComponent/blob/main/SimpleMeshSubdivise.gif?raw=true)
+![Blueprint Nodes](https://github.com/BenjaCorp/SimpleMeshComponent/assets/19375442/c503c868-4ec0-480f-909f-9d58bc1c0b28)
+
 ### Installation
 
 To integrate the `SimpleMeshComponent` into your Unreal Engine project:
