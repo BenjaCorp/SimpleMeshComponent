@@ -1,3 +1,10 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+//---------EXAMPLE MESH---------//
+// Licence: MIT License
+// Created by: BenjaCorp at iolaCorpStudio
+// Created at: 20/02/2024
+//---------EXAMPLE MESH---------//
+
 #pragma once
 
 #include "CoreMinimal.h"

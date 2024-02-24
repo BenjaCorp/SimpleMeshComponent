@@ -1,4 +1,5 @@
 /*
+
 SimpleMeshProxy.h - https://github.com/StevenChristy/SimpleMeshProxy
 
 MIT License
@@ -24,6 +25,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+
+//---------SIMPLEMESHCOMPONENT---------//
+// Licence: MIT License
+// Created by: BenjaCorp at iolaCorpStudio
+// Created at: 20/02/2024
+//---------SIMPLEMESHCOMPONENT---------//
 
 #pragma once
 #include "RenderResource.h"

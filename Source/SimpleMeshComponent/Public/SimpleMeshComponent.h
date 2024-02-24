@@ -1,4 +1,9 @@
-// SimpleMeshComponent.h
+// Copyright Epic Games, Inc. All Rights Reserved.
+//---------SIMPLEMESHCOMPONENT.H---------//
+// Licence: MIT License
+// Created by: BenjaCorp at iolaCorpStudio
+// Created at: 20/02/2024
+//---------SIMPLEMESHCOMPONENT.H---------//
 #pragma once
 
 #include "CoreMinimal.h"
