@@ -28,6 +28,7 @@ struct FSimpleSection
     FSimpleSection() : MaterialIndex(0), Visible(true) {}
 };
 
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class SIMPLEMESHCOMPONENT_API USimpleMeshComponent  : public UMeshComponent
 {
@@ -39,14 +40,40 @@ public:
     
     USimpleMeshComponent();
 
-    virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
+    UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh", meta = (DisplayName = "Create Mesh Section", AutoCreateRefTerm = "Vertices, Triangles , Material, Visibility"))
+        void CreateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles, UMaterialInterface* Material, bool bSectionVisible = true);
 
-    void CreateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<uint32>& Triangles, UMaterialInterface* Material, bool bSectionVisible = true);
-    void UpdateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<uint32>& Triangles);
+//    void CreateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles, UMaterialInterface* Material, bool bSectionVisible = true);
+    /**
+     *	Create/replace a section for this procedural mesh component.
+     *	@param	SectionIndex		Index of the section to create or replace.
+     *	@param	Vertices			Vertex buffer of all vertex positions to use for this mesh section.
+     *	@param	Triangles			Index buffer indicating which vertices make up each triangle. Length must be a multiple of 3.
+     *	@param	Material			
+     *	@param	bVisibility     	
+     */
+
+    UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh", meta = (DisplayName = "Update Mesh Section", AutoCreateRefTerm = "Vertices, Triangles"))
+    void UpdateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles);
+
+    /**
+     *	Create/replace a section for this procedural mesh component.
+     *	@param	SectionIndex		Index of the section to create or replace.
+     *	@param	Vertices			Vertex buffer of all vertex positions to use for this mesh section.
+     *	@param	Triangles			Index buffer indicating which vertices make up each triangle. Length must be a multiple of 3.
+     */
+
+    UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh", meta = (DisplayName = "Remove Mesh Section", AutoCreateRefTerm = ""))
     void RemoveMeshSection(int32 SectionIndex);
+
+
+    UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh", meta = (DisplayName = "Clear All Mesh Sections", AutoCreateRefTerm = ""))
     void ClearAllMeshSections();
 
+    virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
+
     virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
+
     virtual UMaterialInterface* GetMaterial(int32 MaterialIndex) const override;
 
     TArray<FSimpleSection> MeshSections; // Stocke les sections de maillage
@@ -57,7 +84,6 @@ protected:
 
 
 private:
-	
    
     FBoxSphereBounds LocalBounds; // Limites locales du maillage
 
@@ -96,7 +122,7 @@ public:
 
 private:
 
-    UBodySetup* BodySetup;
+    //UBodySetup* BodySetup; // Todo Colision
 };
 
 

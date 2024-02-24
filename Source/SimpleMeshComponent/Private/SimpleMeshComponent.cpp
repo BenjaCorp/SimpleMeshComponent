@@ -28,37 +28,43 @@
 
 #define LOCTEXT_NAMESPACE "FSimpleMeshComponentModule"
 
-void FSimpleMeshComponentModule::StartupModule()
-{
-
-}
-
-void FSimpleMeshComponentModule::ShutdownModule()
-{
-
-}
+void FSimpleMeshComponentModule::StartupModule(){}
+void FSimpleMeshComponentModule::ShutdownModule(){}
 
 #undef LOCTEXT_NAMESPACE
 
 IMPLEMENT_MODULE(FSimpleMeshComponentModule, SimpleMeshComponent)
-
-
-
 
 USimpleMeshComponent::USimpleMeshComponent()
 {
     PrimaryComponentTick.bCanEverTick = false;
     bAutoActivate = true;
     SetCollisionEnabled(ECollisionEnabled::NoCollision);
-}
+	SetGenerateOverlapEvents(false);
 
+    /*bUseAsOccluder = true;
+	bCanEverAffectNavigation = false;
+	bSelectable = true;
+	bHasCustomNavigableGeometry = EHasCustomNavigableGeometry::EvenIfNotCollidable;
+	bCastShadowAsTwoSided = true;
+	bCastDynamicShadow = true;
+	bAffectDynamicIndirectLighting = true;
+	bAffectDistanceFieldLighting = true;
+
+	bVisibleInReflectionCaptures = true;
+	bRenderCustomDepth = false;
+	bRenderInMainPass = true;
+	bReceivesDecals = true;
+	bUseAttachParentBound = true;*/
+
+}
 
 FPrimitiveSceneProxy* USimpleMeshComponent::CreateSceneProxy()
 {
     return new FSimpleSceneProxy(this);
 }
 
-void USimpleMeshComponent::CreateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<uint32>& Triangles, UMaterialInterface* Material, bool bSectionVisible)
+void USimpleMeshComponent::CreateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles, UMaterialInterface* Material, bool bSectionVisible)
 {
     if (SectionIndex >= MeshSections.Num())
     {
@@ -67,37 +73,43 @@ void USimpleMeshComponent::CreateMeshSection(int32 SectionIndex, const TArray<FV
 
     FSimpleSection& Section = MeshSections[SectionIndex];
     Section.VertexBuffer.Empty(Vertices.Num());
-    Section.IndexBuffer = Triangles;
+    Section.IndexBuffer.Empty(Triangles.Num());
 
-    //Try Material
+    // Gestion du matériau
     Section.MaterialIndex = GetMaterials().IndexOfByKey(Material);
     if (Section.MaterialIndex == INDEX_NONE)
     {
         Section.MaterialIndex = 0; // Fallback to default material if not found
     }
-
-
     Section.Visible = bSectionVisible;
 
+    // Conversion de FVector à FVector3f et ajout au VertexBuffer
     for (const FVector& Vertex : Vertices)
     {
         FVector3f Vertex3f(Vertex); // Conversion de FVector à FVector3f
         FDynamicMeshVertex DynamicVertex;
-        DynamicVertex.Position = Vertex3f; // Utilisation de FVector3f
+        DynamicVertex.Position = Vertex3f;
         Section.VertexBuffer.Add(DynamicVertex);
+    }
+
+    // Conversion de int32 à uint32 pour les indices des triangles
+    for (const int32& Index : Triangles)
+    {
+        Section.IndexBuffer.Add(static_cast<uint32>(Index));
     }
 
     UpdateLocalBounds();
     MarkRenderStateDirty();
 }
 
-void USimpleMeshComponent::UpdateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<uint32>& Triangles)
+void USimpleMeshComponent::UpdateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles)
 {
     if (MeshSections.IsValidIndex(SectionIndex))
     {
         FSimpleSection& Section = MeshSections[SectionIndex];
         Section.VertexBuffer.Empty(Vertices.Num());
 
+        // Conversion de FVector à FVector3f et ajout au VertexBuffer
         for (const FVector& Vertex : Vertices)
         {
             FVector3f Vertex3f(Vertex); // Conversion de FVector à FVector3f
@@ -106,13 +118,17 @@ void USimpleMeshComponent::UpdateMeshSection(int32 SectionIndex, const TArray<FV
             Section.VertexBuffer.Add(DynamicVertex);
         }
 
-        Section.IndexBuffer = Triangles;
+        // Conversion de int32 à uint32 pour les indices des triangles
+        Section.IndexBuffer.Empty(Triangles.Num());
+        for (const int32& Index : Triangles)
+        {
+            Section.IndexBuffer.Add(static_cast<uint32>(Index));
+        }
 
         UpdateLocalBounds();
         MarkRenderStateDirty();
     }
 }
-
 
 void USimpleMeshComponent::RemoveMeshSection(int32 SectionIndex)
 {
@@ -182,3 +198,68 @@ UMaterialInterface* USimpleMeshComponent::GetMaterial(int32 MaterialIndex) const
     }
     return Super::GetMaterial(0); // Fallback to default material
 }
+
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+//     Fonction Create/UpdateMeshSection Withnot Uint32 Convertion
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+
+
+//void USimpleMeshComponent::CreateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<uint32>& Triangles, UMaterialInterface* Material, bool bSectionVisible)
+//{
+//    if (SectionIndex >= MeshSections.Num())
+//    {
+//        MeshSections.SetNum(SectionIndex + 1);
+//    }
+//
+//    FSimpleSection& Section = MeshSections[SectionIndex];
+//    Section.VertexBuffer.Empty(Vertices.Num());
+//    Section.IndexBuffer = Triangles;
+//
+//    //Try Material
+//    Section.MaterialIndex = GetMaterials().IndexOfByKey(Material);
+//    if (Section.MaterialIndex == INDEX_NONE)
+//    {
+//        Section.MaterialIndex = 0; // Fallback to default material if not found
+//    }
+//
+//
+//    Section.Visible = bSectionVisible;
+//
+//    for (const FVector& Vertex : Vertices)
+//    {
+//        FVector3f Vertex3f(Vertex); // Conversion de FVector à FVector3f
+//        FDynamicMeshVertex DynamicVertex;
+//        DynamicVertex.Position = Vertex3f; // Utilisation de FVector3f
+//        Section.VertexBuffer.Add(DynamicVertex);
+//    }
+//
+//    UpdateLocalBounds();
+//    MarkRenderStateDirty();
+//}
+
+//void USimpleMeshComponent::UpdateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<uint32>& Triangles)
+//{
+//    if (MeshSections.IsValidIndex(SectionIndex))
+//    {
+//        FSimpleSection& Section = MeshSections[SectionIndex];
+//        Section.VertexBuffer.Empty(Vertices.Num());
+//
+//        for (const FVector& Vertex : Vertices)
+//        {
+//            FVector3f Vertex3f(Vertex); // Conversion de FVector à FVector3f
+//            FDynamicMeshVertex DynamicVertex;
+//            DynamicVertex.Position = Vertex3f;
+//            Section.VertexBuffer.Add(DynamicVertex);
+//        }
+//
+//        Section.IndexBuffer = Triangles;
+//
+//        UpdateLocalBounds();
+//        MarkRenderStateDirty();
+//    }
+//}
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//

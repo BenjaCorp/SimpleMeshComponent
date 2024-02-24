@@ -46,7 +46,7 @@ void ASimpleMesh::InitializePlaneGeometry()
     if (NumDivisionsX < 1 || NumDivisionsY < 1) return;
 
     TArray<FVector> Vertices; // Modification pour utiliser FVector directement
-    TArray<uint32> Indices;
+    TArray<int32> Indices;
 
     float SizeX = 100.0f;
     float SizeY = 100.0f;
