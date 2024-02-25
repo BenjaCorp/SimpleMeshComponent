@@ -12,38 +12,93 @@
 #include "Components/MeshComponent.h"
 #include "Modules/ModuleManager.h"
 
+
 #include "SimpleMeshComponent.generated.h"
 
-// Structure pour les sections de maillage
+struct FKConvexElem;
+
+/** One vertex for the Simple mesh, used for storing data internally */
+
+USTRUCT(BlueprintType)
+struct FSimpleMeshVertex
+{
+    GENERATED_BODY()
+public:
+
+    /** Vertex position */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Vertex)
+        FVector Position;
+
+    FSimpleMeshVertex()
+        : Position(0.f, 0.f, 0.f)
+
+    {}
+};
+
+/** One section of the procedural mesh. Each material has its own section. */
+
 USTRUCT()
-struct FSimpleSection
+struct FSimpleMeshSection
 {
     GENERATED_BODY()
 
-    TArray<FDynamicMeshVertex> VertexBuffer;
-    TArray<uint32> IndexBuffer;
-    int32 MaterialIndex;
-    bool Visible;
+public:
 
-    FSimpleSection() : MaterialIndex(0), Visible(true) {}
+    /** Vertex buffer for this section */
+        TArray<FDynamicMeshVertex> VertexBuffer;
+
+    /** Index buffer for this section */
+    UPROPERTY()
+        TArray<uint32> IndexBuffer;
+    /** Local bounding box of section */
+
+    UPROPERTY()
+    int32 MaterialIndex;
+
+    UPROPERTY()
+        FBox SectionLocalBox;
+
+    /** Should we build collision data for triangles in this section */
+    UPROPERTY()
+        bool bEnableCollision;
+
+    /** Should we display this section */
+    UPROPERTY()
+        bool Visible;
+
+    FSimpleMeshSection()
+        : SectionLocalBox(ForceInit)
+        , bEnableCollision(false)
+        , Visible(true)
+    {}
+
+    /** Reset this section, clear all mesh info. */
+    void Reset()
+    {
+        VertexBuffer.Empty();
+        IndexBuffer.Empty();
+        SectionLocalBox.Init();
+        bEnableCollision = false;
+        Visible = true;
+    }
 };
 
 
-UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class SIMPLEMESHCOMPONENT_API USimpleMeshComponent  : public UMeshComponent
+
+
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent), ClassGroup = Rendering)
+class SIMPLEMESHCOMPONENT_API USimpleMeshComponent  : public UMeshComponent, public IInterface_CollisionDataProvider
 {
     GENERATED_BODY()
 
 public:
 
 // Constructeur
-    
-    USimpleMeshComponent();
+    USimpleMeshComponent(const FObjectInitializer& ObjectInitializer);
 
-    UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh", meta = (DisplayName = "Create Mesh Section", AutoCreateRefTerm = "Vertices, Triangles , Material, Visibility"))
-        void CreateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles, UMaterialInterface* Material, bool bSectionVisible = true);
-
-//    void CreateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles, UMaterialInterface* Material, bool bSectionVisible = true);
+    UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh", meta = (DisplayName = "Create Mesh Section", AutoCreateRefTerm = "Vertices, Triangles , Material, Visibility, Collision"))
+        void CreateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles, UMaterialInterface* Material, bool bSectionVisible = true, bool bCreateCollision = false);
     /**
      *	Create/replace a section for this procedural mesh component.
      *	@param	SectionIndex		Index of the section to create or replace.
@@ -53,9 +108,8 @@ public:
      *	@param	bVisibility     	
      */
 
-    UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh", meta = (DisplayName = "Update Mesh Section", AutoCreateRefTerm = "Vertices, Triangles"))
-    void UpdateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles);
-
+    UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh", meta = (DisplayName = "Update Mesh Section", AutoCreateRefTerm = "Vertices, Triangles, Collision"))
+    void UpdateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles, bool bCreateCollision);
     /**
      *	Create/replace a section for this procedural mesh component.
      *	@param	SectionIndex		Index of the section to create or replace.
@@ -66,17 +120,62 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh", meta = (DisplayName = "Remove Mesh Section", AutoCreateRefTerm = ""))
     void RemoveMeshSection(int32 SectionIndex);
 
+    /** Clear all mesh sections */
+    UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh")
+        void ClearAllMeshSections();
 
-    UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh", meta = (DisplayName = "Clear All Mesh Sections", AutoCreateRefTerm = ""))
-    void ClearAllMeshSections();
+    /** Returns number of sections currently created for this component */
+    UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh")
+    int32 GetNumSections() const;
+
+    /** Add simple collision convex to this component */
+    UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh")
+    void AddCollisionConvexMesh(TArray<FVector> ConvexVerts);
+
+    /** Remove collision meshes from this component */
+    UFUNCTION(BlueprintCallable, Category = "Components|SimpleMesh")
+    void ClearCollisionConvexMeshes();
+
+    /** Function to replace _all_ simple collision in one go */
+    void SetCollisionConvexMeshes(const TArray< TArray<FVector> >& ConvexMeshes);
+
+    //~ Begin Interface_CollisionDataProvider Interface
+    virtual bool GetTriMeshSizeEstimates(struct FTriMeshCollisionDataEstimates& OutTriMeshEstimates, bool bInUseAllTriData) const override;
+    virtual bool GetPhysicsTriMeshData(struct FTriMeshCollisionData* CollisionData, bool InUseAllTriData) override;
+    virtual bool ContainsPhysicsTriMeshData(bool InUseAllTriData) const override;
+    virtual bool WantsNegXTriMesh() override { return false; }
+    //~ End Interface_CollisionDataProvider Interface
+
+
+    virtual void PostLoad() override;
+
 
     virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
-
-    virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
+    virtual class UBodySetup* GetBodySetup() override;
 
     virtual UMaterialInterface* GetMaterial(int32 MaterialIndex) const override;
 
-    TArray<FSimpleSection> MeshSections; // Stocke les sections de maillage
+    TArray<FSimpleMeshSection> MeshSections; // Stocke les sections de maillage
+    
+    //Collision
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision|SimpleMesh")
+        bool bUseComplexAsSimpleCollision;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision|SimpleMesh")
+        bool bUseAsyncCooking;
+
+    /** Collision data */
+    UPROPERTY(Instanced)
+        TObjectPtr<class UBodySetup> SimpleMeshBodySetup;
+
+    /** Replace a section with new section geometry */
+    void SetSimpleMeshSection(int32 SectionIndex, const FSimpleMeshSection& Section);
+
+    //~ Begin USceneComponent Interface.
+    virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
+    //~ Begin USceneComponent Interface.
+
 
 protected:
 	
@@ -87,7 +186,24 @@ private:
    
     FBoxSphereBounds LocalBounds; // Limites locales du maillage
 
-    int32 GetNumSections() const; // Renvoie le nombre de sections de maillage
+    /** Ensure ProcMeshBodySetup is allocated and configured */
+    void CreateSimpleMeshBodySetup();
+
+    /** Helper to create new body setup objects */
+    UBodySetup* CreateBodySetupHelper();
+
+    /** Mark collision data as dirty, and re-create on instance if necessary */
+    void UpdateCollision();
+
+    void FinishPhysicsAsyncCook(bool bSuccess, UBodySetup* FinishedBodySetup);
+
+    /** Convex shapes used for simple collision */
+    UPROPERTY()
+        TArray<FKConvexElem> CollisionConvexElems;
+
+    /** Queue for async body setups that are being cooked */
+    UPROPERTY(transient)
+        TArray<TObjectPtr<UBodySetup>> AsyncBodySetupQueue;
 
 };
 
@@ -111,7 +227,7 @@ public:
 
         for (int i = 0; i < SectionCnt; i++)
         {
-            FSimpleSection& MeshSection = Component->MeshSections[i];
+            FSimpleMeshSection& MeshSection = Component->MeshSections[i];
             Options.bIsVisible = MeshSection.Visible;
             Sections[i] = new FSimpleMeshSceneSection(MeshSection.VertexBuffer, MeshSection.IndexBuffer,
                 Component->GetMaterial(MeshSection.MaterialIndex), Options, FL);
@@ -119,10 +235,6 @@ public:
 
         SectionsUpdated();
     }
-
-private:
-
-    //UBodySetup* BodySetup; // Todo Colision
 };
 
 

@@ -5,12 +5,12 @@
 // Created at: 20/02/2024
 //---------EXAMPLE MESH---------//
 
-#include "SimpleMesh.h"
+#include "SubdivisablePlane.h"
 #include "SimpleMeshComponent.h"
 #include "DynamicMeshBuilder.h"
 
 
-ASimpleMesh::ASimpleMesh()
+ASubdivisablePlane::ASubdivisablePlane()
 {
     PrimaryActorTick.bCanEverTick = true;
     
@@ -21,26 +21,32 @@ ASimpleMesh::ASimpleMesh()
     SimpleMeshComponent = CreateDefaultSubobject<USimpleMeshComponent>(TEXT("SimpleMeshComponent"));
     SimpleMeshComponent->SetupAttachment(Root);
     SimpleMeshComponent->SetMobility(EComponentMobility::Static);
+    
+    // Enable collision
+    SimpleMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    SimpleMeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
+
+
 }
 
-void ASimpleMesh::OnConstruction(const FTransform& Transform)
+void ASubdivisablePlane::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
     InitializePlaneGeometry();
 }
 
-void ASimpleMesh::BeginPlay()
+void ASubdivisablePlane::BeginPlay()
 {
     Super::BeginPlay();
     InitializePlaneGeometry();
 }
 
-void ASimpleMesh::Tick(float DeltaTime)
+void ASubdivisablePlane::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 }
 
-void ASimpleMesh::InitializePlaneGeometry()
+void ASubdivisablePlane::InitializePlaneGeometry()
 {
     double StartTime = FPlatformTime::Seconds();
     if (NumDivisionsX < 1 || NumDivisionsY < 1) return;
@@ -78,34 +84,18 @@ void ASimpleMesh::InitializePlaneGeometry()
             Indices.Add(Index + NumDivisionsX + 2);
         }
     }
-    UE_LOG(LogTemp, Warning, TEXT("[SMC] Not Find"));
+
     UMaterialInterface* Material = MaterialSlot;
 
     if (!Material) {
         Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial'"));
-        UE_LOG(LogTemp, Warning, TEXT("[SMC] Reset DefaultMaterial"));
     }
 
-    SimpleMeshComponent->CreateMeshSection(0, Vertices, Indices, Material, true); // Modifié pour prendre FVector
+    SimpleMeshComponent->CreateMeshSection(0, Vertices, Indices, Material, true, true); // Modifié pour prendre FVector
     SimpleMeshComponent ->SetMaterial(0, Material);
 
     double EndTime = FPlatformTime::Seconds();
     double ElapsedTimeMs = (EndTime - StartTime) * 1000.0;
-    UE_LOG(LogTemp, Warning, TEXT("[SMC] Geometry was generated and drawn -> %f ms."), ElapsedTimeMs);
 }
 
-
 // SimpleMesh.cpp
-
-
-
-
-
-
-
-
-
- 
-
-
-

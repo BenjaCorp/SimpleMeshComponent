@@ -28,12 +28,12 @@ SOFTWARE.
 
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-
-//---------SIMPLEMESHCOMPONENT---------//
-// Licence: MIT License
-// Created by: BenjaCorp at iolaCorpStudio
-// Created at: 20/02/2024
-//---------SIMPLEMESHCOMPONENT---------//
+//---------SIMPLEMESHCOMPONENT-------------//
+// Licence: MIT License                    //
+// Created by: BenjaCorp at iolaCorpStudio //
+// Created at: 20/02/2024                  //
+// Copyright 2024 BenjaCorp                //
+//---------SIMPLEMESHCOMPONENT-------------//
 
 #pragma once
 #include "RenderResource.h"
@@ -56,7 +56,6 @@ DECLARE_CYCLE_STAT(TEXT("SimpleMeshProxy - DrawStaticMeshElements"), STAT_Simple
 DECLARE_CYCLE_STAT(TEXT("SimpleMeshProxy - GetDynamicMeshElements"), STAT_SimpleMeshSceneProxy_GetDynamicMeshElements, STATGROUP_SimpleMeshProxy);
 DECLARE_CYCLE_STAT(TEXT("SimpleMeshProxy - GetDynamicRayTracingInstances"), STAT_SimpleMeshSceneProxy_GetDynamicRayTracingInstances, STATGROUP_SimpleMeshProxy);
 
-
 struct FSimpleMeshSectionOptions
 {
 	uint32 bIsValid : 1;
@@ -66,10 +65,7 @@ struct FSimpleMeshSectionOptions
 	uint32 bShouldRenderStatic : 1;
 
 	FSimpleMeshSectionOptions() : bIsValid(false), bIsVisible(false), bIsMainPassRenderable(false),
-		bCastsShadow(false), bShouldRenderStatic(false)
-	{
-		
-	}
+		bCastsShadow(false), bShouldRenderStatic(false){}
 };
 
 class FSimpleMeshSceneSection
@@ -113,35 +109,35 @@ public:
 		else
 			Material = InMaterial;
 
-#if RHI_RAYTRACING
-		/*if (IsRayTracingEnabled())
-		{
-			ENQUEUE_RENDER_COMMAND(InitProceduralMeshRayTracingGeometry)([this](FRHICommandListImmediate& RHICmdList)
-			{
-
-				FRayTracingGeometryInitializer Initializer;
-				Initializer.DebugName = FName("FSimpleMeshSceneSection");
-				Initializer.IndexBuffer = nullptr;
-				Initializer.TotalPrimitiveCount = 0;
-				Initializer.GeometryType = RTGT_Triangles;
-				Initializer.bFastBuild = true;
-				Initializer.bAllowUpdate = false;
-
-				RayTracingGeometry.SetInitializer(Initializer);
-				RayTracingGeometry.InitResource();
-
-				RayTracingGeometry.Initializer.IndexBuffer = IndexBuffer.IndexBufferRHI;
-				RayTracingGeometry.Initializer.TotalPrimitiveCount = IndexBuffer.Indices.Num() / 3;
-
-				FRayTracingGeometrySegment Segment;
-				Segment.VertexBuffer = VertexBuffers.PositionVertexBuffer.VertexBufferRHI;
-				Segment.NumPrimitives = RayTracingGeometry.Initializer.TotalPrimitiveCount;
-				RayTracingGeometry.Initializer.Segments.Add(Segment);
-
-				RayTracingGeometry.UpdateRHI();
-			});
-		}*/
-#endif
+//#if RHI_RAYTRACING
+//		if (IsRayTracingEnabled())
+//		{
+//			ENQUEUE_RENDER_COMMAND(InitProceduralMeshRayTracingGeometry)([this](FRHICommandListImmediate& RHICmdList)
+//			{
+//
+//				FRayTracingGeometryInitializer Initializer;
+//				Initializer.DebugName = FName("FSimpleMeshSceneSection");
+//				Initializer.IndexBuffer = nullptr;
+//				Initializer.TotalPrimitiveCount = 0;
+//				Initializer.GeometryType = RTGT_Triangles;
+//				Initializer.bFastBuild = true;
+//				Initializer.bAllowUpdate = false;
+//
+//				RayTracingGeometry.SetInitializer(Initializer);
+//				RayTracingGeometry.InitResource(RHICmdList);
+//
+//				RayTracingGeometry.Initializer.IndexBuffer = IndexBuffer.IndexBufferRHI;
+//				RayTracingGeometry.Initializer.TotalPrimitiveCount = IndexBuffer.Indices.Num() / 3;
+//
+//				FRayTracingGeometrySegment Segment;
+//				Segment.VertexBuffer = VertexBuffers.PositionVertexBuffer.VertexBufferRHI;
+//				Segment.NumPrimitives = RayTracingGeometry.Initializer.TotalPrimitiveCount;
+//				RayTracingGeometry.Initializer.Segments.Add(Segment);
+//
+//				RayTracingGeometry.UpdateRHI(RHICmdList);
+//			});
+//		}
+//#endif
 	}
 
 	~FSimpleMeshSceneSection()
@@ -225,7 +221,7 @@ public:
 
 	void SectionsUpdated()
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("[SMC] Start Section Update"));
+
 		const auto FeatureLevel = GetScene().GetFeatureLevel();
 		for (int x = 0, xc = Sections.Num(); x < xc; x++)
 		{
@@ -367,7 +363,10 @@ public:
 						{
 							FMeshBatch& MeshBatch = Collector.AllocateMesh();
 							CreateMeshBatch(MeshBatch, Section, SectionIndex, WireframeMaterialInstance, false);
+
 							MeshBatch.bDitheredLODTransition = false;
+
+
 							Collector.AddMesh(ViewIndex, MeshBatch);
 						}
 					}
@@ -381,11 +380,11 @@ public:
 			if (VisibilityMap & (1 << ViewIndex))
 			{
 				// Draw simple collision as wireframe if 'show collision', and collision is enabled, and we are not using the complex as the simple
-				/*if (ViewFamily.EngineShowFlags.Collision && IsCollisionEnabled() && BodySetup && BodySetup->GetCollisionTraceFlag() != ECollisionTraceFlag::CTF_UseComplexAsSimple)
+				if (ViewFamily.EngineShowFlags.Collision && IsCollisionEnabled() && BodySetup && BodySetup->GetCollisionTraceFlag() != ECollisionTraceFlag::CTF_UseComplexAsSimple)
 				{
 					FTransform GeomTransform(GetLocalToWorld());
 					BodySetup->AggGeom.GetAggGeom(GeomTransform, GetSelectionColor(FColor(157, 149, 223, 255), IsSelected(), IsHovered()).ToFColor(true), NULL, false, false, DrawsVelocity(), ViewIndex, Collector);
-				}*/
+				}
 				// Render bounds
 				RenderBounds(Collector.GetPDI(ViewIndex), ViewFamily.EngineShowFlags, GetBounds(), IsSelected());
 			}
@@ -428,8 +427,6 @@ public:
 					CreateMeshBatch(MeshBatch, Section, SectionIndex, nullptr, true);
 					MeshBatch.CastRayTracedShadow = IsShadowCast(Context.ReferenceView);
 					RayTracingInstance.Materials.Add(MeshBatch);
-
-					//RayTracingInstance.BuildInstanceMaskAndFlags();
 					OutRayTracingInstances.Add(RayTracingInstance);
 				}
 			}
