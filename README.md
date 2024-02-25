@@ -6,6 +6,7 @@ The `SimpleMeshComponent` provides a simplified alternative to Unreal Engine's `
 
 ## Features
 
+- Currently, will only generate geometry **(MeshSection, Vertices, Triangle, Material, and Visibility)**.
 - **Custom Mesh Proxy**: Utilizes a lightweight proxy for efficient mesh processing.
 - **Dynamic Mesh Creation**: Supports the dynamic creation of mesh sections.
 - **Performance Optimized**: Designed for reduced code complexity and memory usage.
