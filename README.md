@@ -12,7 +12,7 @@ The `SimpleMeshComponent` provides a simplified alternative to Unreal Engine's `
 - **Performance Optimized**: Designed for reduced code complexity and memory usage.
 - **Ease of Use**: Provides a straightforward API for basic mesh operations, making it ideal for custom extensions.
 - **Collision**: AsyncCook - Convex/Complex
-- No UV / No Normal / No linear Color / No PathTracing / DistanceField / No RVT Pass
+- No UV / No Normal / No linear Color / No PathTracing / No DistanceField / No RVT Pass
 
 
 ## Getting Started
