@@ -6,11 +6,13 @@ The `SimpleMeshComponent` provides a simplified alternative to Unreal Engine's `
 
 ## Features
 
-- Currently, will only generate geometry **(MeshSection, Vertices, Triangle, Material, and Visibility)**.
-- **Custom Mesh Proxy**: Utilizes a lightweight proxy for efficient mesh processing.
-- **Dynamic Mesh Creation**: Supports the dynamic creation of mesh sections.
+- **(MeshSection, Vertices, Triangle, Material, Collision, and Visibility)**.
+- **Custom Mesh Proxy**: Utilizes a lightweight proxy for efficient mesh processing with **Static Rendering Path**.
+- **Dynamic Mesh Creation**: Supports the dynamic creation of mesh sections c++/BP.
 - **Performance Optimized**: Designed for reduced code complexity and memory usage.
 - **Ease of Use**: Provides a straightforward API for basic mesh operations, making it ideal for custom extensions.
+- **Collision**: AsyncCook - Convex/Complex
+- No UV / No Normal / No linear Color / No PathTracing / No DistanceField / No RVT Pass
 
 
 ## Getting Started
