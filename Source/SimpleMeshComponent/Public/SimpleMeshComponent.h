@@ -153,7 +153,7 @@ public:
     virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
     virtual class UBodySetup* GetBodySetup() override;
 
-    virtual UMaterialInterface* GetMaterial(int32 MaterialIndex) const override;
+   //irtual UMaterialInterface* GetMaterial(int32 MaterialIndex) const override;
 
     TArray<FSimpleMeshSection> MeshSections; // Stocke les sections de maillage
     
@@ -164,6 +164,11 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision|SimpleMesh")
         bool bUseAsyncCooking;
+
+    //Material
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Material|SimpleMesh")
+		TArray<UMaterialInterface*> Materials;
 
     /** Collision data */
     UPROPERTY(Instanced)
@@ -176,6 +181,8 @@ public:
     virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
     //~ Begin USceneComponent Interface.
 
+    /** Returns a specific section of the Simple Mesh. */
+    FSimpleMeshSection* GetSimpleMeshSection(int32 SectionIndex);
 
 protected:
 	
@@ -231,6 +238,7 @@ public:
             Options.bIsVisible = MeshSection.Visible;
             Sections[i] = new FSimpleMeshSceneSection(MeshSection.VertexBuffer, MeshSection.IndexBuffer,
                 Component->GetMaterial(MeshSection.MaterialIndex), Options, FL);
+
         }
 
         SectionsUpdated();

@@ -103,8 +103,8 @@ public:
 		BeginInitResource(&VertexBuffers.ColorVertexBuffer);
 		BeginInitResource(&IndexBuffer);
 		BeginInitResource(&VertexFactory);
-
-		if (InMaterial == nullptr)
+	
+		if (InMaterial == NULL)
 			Material = UMaterial::GetDefaultMaterial(MD_Surface);
 		else
 			Material = InMaterial;
@@ -373,7 +373,7 @@ public:
 				}
 			}
 		}
-		// Draw bounds
+		// this can potentially crash, especially if you leave the player's view when simulating PIE
 #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 		for (int32 ViewIndex = 0; ViewIndex < Views.Num(); ViewIndex++)
 		{

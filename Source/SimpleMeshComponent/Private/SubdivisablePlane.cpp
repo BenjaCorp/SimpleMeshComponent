@@ -25,8 +25,14 @@ ASubdivisablePlane::ASubdivisablePlane()
     // Enable collision
     SimpleMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     SimpleMeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
+    UMaterialInterface* Material1 = MaterialSlot1;
+    UMaterialInterface* Material2 = MaterialSlot2;
 
-
+   
+        Material1 = LoadObject<UMaterialInterface>(nullptr, TEXT("MaterialInterface'/VoxelScape/Materials/CubesTypes/MI_Grass.MI_Grass'"));
+   
+        Material2 = LoadObject<UMaterialInterface>(nullptr, TEXT("MaterialInterface'/VoxelScape/Materials/CubesTypes/MI_Dirt.MI_Dirt'"));
+    
 }
 
 void ASubdivisablePlane::OnConstruction(const FTransform& Transform)
@@ -85,15 +91,22 @@ void ASubdivisablePlane::InitializePlaneGeometry()
         }
     }
 
-    UMaterialInterface* Material = MaterialSlot;
+    UMaterialInterface* Material1 = MaterialSlot1;
+    UMaterialInterface* Material2 = MaterialSlot2;
 
-    if (!Material) {
-        Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial'"));
+    if (!Material1)
+    {
+        Material1 = LoadObject<UMaterialInterface>(nullptr, TEXT("MaterialInterface'/VoxelScape/Materials/CubesTypes/MI_Grass.MI_Grass'"));
+    }
+    if (!Material1)
+    {
+        Material2 = LoadObject<UMaterialInterface>(nullptr, TEXT("MaterialInterface'/VoxelScape/Materials/CubesTypes/MI_Dirt.MI_Dirt'"));
     }
 
-    SimpleMeshComponent->CreateMeshSection(0, Vertices, Indices, Material, true, true); // Modifié pour prendre FVector
-    SimpleMeshComponent ->SetMaterial(0, Material);
-
+    SimpleMeshComponent->CreateMeshSection(0, Vertices, Indices, Material1, true, true); // Modifié pour prendre FVector
+    SimpleMeshComponent ->SetMaterial(0, Material1);
+    SimpleMeshComponent->CreateMeshSection(1, Vertices, Indices, Material2, true, true); // Modifié pour prendre FVector
+    SimpleMeshComponent->SetMaterial(1, Material2);
     double EndTime = FPlatformTime::Seconds();
     double ElapsedTimeMs = (EndTime - StartTime) * 1000.0;
 }

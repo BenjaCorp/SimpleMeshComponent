@@ -45,7 +45,8 @@ public:
     USimpleMeshComponent* SimpleMeshComponent;
 
     UPROPERTY(EditAnywhere, Category = "SMC | Material")
-        UMaterialInterface* MaterialSlot;
-
+        UMaterialInterface* MaterialSlot1;
+    UPROPERTY(EditAnywhere, Category = "SMC | Material")
+        UMaterialInterface* MaterialSlot2;
 
 };

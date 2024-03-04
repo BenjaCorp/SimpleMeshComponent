@@ -91,25 +91,33 @@ static void ConvertSimpleMeshToDynMeshVertex(FDynamicMeshVertex& Vert, const FSi
 }
 
 
-
-
-
 void USimpleMeshComponent::CreateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles, UMaterialInterface* Material, bool bSectionVisible, bool bCreateCollision)
 {
+    // Vérifier que les tableaux de vertices et de triangles ne sont pas vides avant de continuer.
+    if (Vertices.IsEmpty() || Triangles.IsEmpty())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("CreateMeshSection called with empty vertices or triangles array. Skipping section creation."));
+        return; // Sortie anticipée pour éviter un crash dû à des données vides.
+    }
+
+    // Ajuster la taille du tableau MeshSections pour s'assurer qu'il peut contenir la nouvelle section.
     if (SectionIndex >= MeshSections.Num())
     {
-        MeshSections.SetNum(SectionIndex + 1, false);
+        MeshSections.SetNum(SectionIndex + 1, true); // Utilisez true pour initialiser les nouvelles sections.
     }
 
     FSimpleMeshSection& Section = MeshSections[SectionIndex];
-    Section.Reset();
+    Section.Reset(); // Réinitialiser la section pour nettoyer les données précédentes.
 
-    // Gestion du matériau
-    Section.MaterialIndex = GetMaterials().IndexOfByKey(Material);
+   // Section.MaterialIndex = GetMaterials().IndexOfByKey(Material);
     if (Section.MaterialIndex == INDEX_NONE)
     {
         Section.MaterialIndex = 0; // Fallback to default material if not found
     }
+
+    // Note: Cette approche suppose que Material n'est pas null. Ajoutez des vérifications si Material peut être null.
+    Section.MaterialIndex = Materials.AddUnique(Material); // Assurez-vous que Materials est accessible et correctement défini.
+   
     Section.Visible = bSectionVisible;
 
     // Conversion de FVector à FVector3f et ajout au VertexBuffer
@@ -127,12 +135,65 @@ void USimpleMeshComponent::CreateMeshSection(int32 SectionIndex, const TArray<FV
         Section.IndexBuffer.Add(static_cast<uint32>(Index));
     }
 
+    // Activer la collision pour cette section, si demandé
     Section.bEnableCollision = bCreateCollision;
 
+
+
+    // Mise à jour des limites locales, de la collision et du marquage pour la recréation de l'état de rendu
     UpdateLocalBounds();
     UpdateCollision();
     MarkRenderStateDirty();
 }
+
+// Old Version
+//void USimpleMeshComponent::CreateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles, UMaterialInterface* Material, bool bSectionVisible, bool bCreateCollision)
+//{
+//    // Ensure that the vertices and triangles arrays are not empty before proceeding
+//
+//    if (Vertices.IsEmpty() || Triangles.IsEmpty())
+//    {
+//        UE_LOG(LogTemp, Warning, TEXT("CreateMeshSection called with empty vertices or triangles array. Skipping section creation."));
+//        return; // Early exit to prevent crash due to empty data
+//    }
+//
+//    if (SectionIndex >= MeshSections.Num())
+//    {
+//        MeshSections.SetNum(SectionIndex + 1, false);
+//    }
+//
+//    FSimpleMeshSection& Section = MeshSections[SectionIndex];
+//    Section.Reset();
+//
+//    // Handle material assignment
+//    Section.MaterialIndex = GetMaterials().IndexOfByKey(Material);
+//    if (Section.MaterialIndex == INDEX_NONE)
+//    {
+//        Section.MaterialIndex = 0; // Fallback to default material if not found
+//    }
+//    Section.Visible = bSectionVisible;
+//
+//    // Convert FVector to FVector3f and add to VertexBuffer
+//    for (const FVector& Vertex : Vertices)
+//    {
+//        FVector3f Vertex3f(Vertex); // Convert FVector to FVector3f
+//        FDynamicMeshVertex DynamicVertex;
+//        DynamicVertex.Position = Vertex3f;
+//        Section.VertexBuffer.Add(DynamicVertex);
+//    }
+//
+//    // Convert int32 to uint32 for triangle indices
+//    for (const int32& Index : Triangles)
+//    {
+//        Section.IndexBuffer.Add(static_cast<uint32>(Index));
+//    }
+//
+//    Section.bEnableCollision = bCreateCollision;
+//
+//    UpdateLocalBounds();
+//    UpdateCollision();
+//    MarkRenderStateDirty();
+//}
 
 // Maybe Collision Fail on Update now
 void USimpleMeshComponent::UpdateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles, bool bCreateCollision)
@@ -264,14 +325,14 @@ int32 USimpleMeshComponent::GetNumSections() const
 }
 
 
-UMaterialInterface* USimpleMeshComponent::GetMaterial(int32 MaterialIndex) const
-{
-    if (MaterialIndex < GetMaterials().Num())
-    {
-        return GetMaterials()[MaterialIndex];
-    }
-    return Super::GetMaterial(0); // Fallback to default material
-}
+//UMaterialInterface* USimpleMeshComponent::GetMaterial(int32 MaterialIndex) const
+//{
+//    if (MaterialIndex < GetMaterials().Num())
+//    {
+//        return GetMaterials()[MaterialIndex];
+//    }
+//    return Super::GetMaterial(0); // Fallback to default material
+//}
 
 
 void USimpleMeshComponent::AddCollisionConvexMesh(TArray<FVector> ConvexVerts)
@@ -497,6 +558,20 @@ void USimpleMeshComponent::SetSimpleMeshSection(int32 SectionIndex, const FSimpl
     UpdateCollision(); // Mark collision as dirty
     MarkRenderStateDirty(); // New section requires recreating scene proxy
 }
+
+
+FSimpleMeshSection* USimpleMeshComponent::GetSimpleMeshSection(int32 SectionIndex)
+{
+    if (SectionIndex < MeshSections.Num())
+    {
+        return &MeshSections[SectionIndex];
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
 
 UBodySetup* USimpleMeshComponent::GetBodySetup()
 {
