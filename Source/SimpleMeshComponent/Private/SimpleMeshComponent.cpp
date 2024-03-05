@@ -1,4 +1,5 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
+
 //---------SIMPLEMESHCOMPONENT.CPP---------//
 // Licence: MIT License                    //
 // Created by: BenjaCorp at iolaCorpStudio //
@@ -40,9 +41,7 @@ class FSimpleMeshVertexResourceArray : public FResourceArrayInterface
 public:
     FSimpleMeshVertexResourceArray(void* InData, uint32 InSize)
         : Data(InData)
-        , Size(InSize)
-    {
-    }
+        , Size(InSize) {}
 
     virtual const void* GetResourceData() const override { return Data; }
     virtual uint32 GetResourceDataSize() const override { return Size; }
@@ -146,56 +145,9 @@ void USimpleMeshComponent::CreateMeshSection(int32 SectionIndex, const TArray<FV
     MarkRenderStateDirty();
 }
 
-// Old Version
-//void USimpleMeshComponent::CreateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles, UMaterialInterface* Material, bool bSectionVisible, bool bCreateCollision)
-//{
-//    // Ensure that the vertices and triangles arrays are not empty before proceeding
-//
-//    if (Vertices.IsEmpty() || Triangles.IsEmpty())
-//    {
-//        UE_LOG(LogTemp, Warning, TEXT("CreateMeshSection called with empty vertices or triangles array. Skipping section creation."));
-//        return; // Early exit to prevent crash due to empty data
-//    }
-//
-//    if (SectionIndex >= MeshSections.Num())
-//    {
-//        MeshSections.SetNum(SectionIndex + 1, false);
-//    }
-//
-//    FSimpleMeshSection& Section = MeshSections[SectionIndex];
-//    Section.Reset();
-//
-//    // Handle material assignment
-//    Section.MaterialIndex = GetMaterials().IndexOfByKey(Material);
-//    if (Section.MaterialIndex == INDEX_NONE)
-//    {
-//        Section.MaterialIndex = 0; // Fallback to default material if not found
-//    }
-//    Section.Visible = bSectionVisible;
-//
-//    // Convert FVector to FVector3f and add to VertexBuffer
-//    for (const FVector& Vertex : Vertices)
-//    {
-//        FVector3f Vertex3f(Vertex); // Convert FVector to FVector3f
-//        FDynamicMeshVertex DynamicVertex;
-//        DynamicVertex.Position = Vertex3f;
-//        Section.VertexBuffer.Add(DynamicVertex);
-//    }
-//
-//    // Convert int32 to uint32 for triangle indices
-//    for (const int32& Index : Triangles)
-//    {
-//        Section.IndexBuffer.Add(static_cast<uint32>(Index));
-//    }
-//
-//    Section.bEnableCollision = bCreateCollision;
-//
-//    UpdateLocalBounds();
-//    UpdateCollision();
-//    MarkRenderStateDirty();
-//}
 
-// Maybe Collision Fail on Update now
+// Maybe Collision make Crash at Editor
+
 void USimpleMeshComponent::UpdateMeshSection(int32 SectionIndex, const TArray<FVector>& Vertices, const TArray<int32>& Triangles, bool bCreateCollision)
 {
     if (MeshSections.IsValidIndex(SectionIndex))
@@ -242,10 +194,8 @@ void USimpleMeshComponent::UpdateMeshSection(int32 SectionIndex, const TArray<FV
             BodyInstance.UpdateTriMeshVertices(CollisionPositions);
         }
 
-
-
         UpdateLocalBounds();
-        //UpdateCollision();
+        UpdateCollision(); //Good for Update Collision
         MarkRenderStateDirty();
     }
 }
@@ -260,7 +210,6 @@ void USimpleMeshComponent::RemoveMeshSection(int32 SectionIndex)
         MarkRenderStateDirty();
     }
 }
-
 
 void USimpleMeshComponent::ClearAllMeshSections()
 {
@@ -283,7 +232,6 @@ bool USimpleMeshComponent::GetTriMeshSizeEstimates(struct FTriMeshCollisionDataE
 
     return true;
 }
-
 
 FBoxSphereBounds USimpleMeshComponent::CalcBounds(const FTransform& LocalToWorld) const
 {
@@ -318,22 +266,15 @@ void USimpleMeshComponent::UpdateLocalBounds()
     UpdateBounds();
 }
 
+bool USimpleMeshComponent::DoesSectionExist(int32 SectionIndex) const
+{
+    return MeshSections.IsValidIndex(SectionIndex) ;
+}
 
 int32 USimpleMeshComponent::GetNumSections() const
 {
     return MeshSections.Num();
 }
-
-
-//UMaterialInterface* USimpleMeshComponent::GetMaterial(int32 MaterialIndex) const
-//{
-//    if (MaterialIndex < GetMaterials().Num())
-//    {
-//        return GetMaterials()[MaterialIndex];
-//    }
-//    return Super::GetMaterial(0); // Fallback to default material
-//}
-
 
 void USimpleMeshComponent::AddCollisionConvexMesh(TArray<FVector> ConvexVerts)
 {

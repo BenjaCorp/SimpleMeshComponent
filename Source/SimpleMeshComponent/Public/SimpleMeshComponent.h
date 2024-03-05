@@ -153,7 +153,9 @@ public:
     virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
     virtual class UBodySetup* GetBodySetup() override;
 
-   //irtual UMaterialInterface* GetMaterial(int32 MaterialIndex) const override;
+   
+   /** Vérifie si une section de mesh spécifiée par son index existe. */
+    bool DoesSectionExist(int32 SectionIndex) const;
 
     TArray<FSimpleMeshSection> MeshSections; // Stocke les sections de maillage
     
